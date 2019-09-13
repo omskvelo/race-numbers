@@ -143,12 +143,14 @@ func ratedUsersMap(users []User) (result map[string]User) {
 var (
 	participantsFileName = ""
 	ratingFileName       = ""
+	dumpNumbers          = false
 )
 
 func main() {
 
 	flag.StringVar(&participantsFileName, "p", "", "Participants csv file")
 	flag.StringVar(&ratingFileName, "r", "", "Rating csv file")
+	flag.BoolVar(&dumpNumbers, "dump", false, "Dump numbers")
 
 	flag.Parse()
 
@@ -176,9 +178,12 @@ func main() {
 		participants[i] = user
 	}
 
-	sort.Slice(participants, func(index1, index2 int) bool {
-		user1 := participants[index1]
-		user2 := participants[index2]
+	sortedParticipants := make([]User, len(participants))
+	copy(sortedParticipants, participants)
+
+	sort.Slice(sortedParticipants, func(index1, index2 int) bool {
+		user1 := sortedParticipants[index1]
+		user2 := sortedParticipants[index2]
 		if user2.points < user1.points {
 			return true
 		} else if user2.points > user1.points {
@@ -187,20 +192,34 @@ func main() {
 		return strings.Compare(user1.name, user2.name) < 0
 	})
 
-	writer := csv.NewWriter(os.Stdout)
-	defer writer.Flush()
-
-	writer.Write([]string{"number", "name", "team", "pts"})
-
-	for i, user := range participants {
+	for i := 0; i < len(sortedParticipants); i++ {
 		number := i + 1
 
-		lineArray := make([]string, 0)
-		lineArray = append(lineArray, fmt.Sprintf("%v", number))
-		lineArray = append(lineArray, user.name)
-		lineArray = append(lineArray, user.team)
-		lineArray = append(lineArray, "")
+		user := sortedParticipants[i]
+		user.start_number = int64(number)
 
-		writer.Write(lineArray)
+		ratedUsersMap[user.name] = user
+		sortedParticipants[i] = user
+	}
+
+	if dumpNumbers {
+		for _, user := range participants {
+			dlog("%v", ratedUsersMap[user.name].start_number)
+		}
+	} else {
+		writer := csv.NewWriter(os.Stdout)
+		defer writer.Flush()
+
+		writer.Write([]string{"number", "name", "team", "pts"})
+
+		for _, user := range sortedParticipants {
+			lineArray := make([]string, 0)
+			lineArray = append(lineArray, fmt.Sprintf("%v", user.start_number))
+			lineArray = append(lineArray, user.name)
+			lineArray = append(lineArray, user.team)
+			lineArray = append(lineArray, "")
+
+			writer.Write(lineArray)
+		}
 	}
 }

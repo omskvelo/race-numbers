@@ -1,4 +1,5 @@
-.idea
-_data/participants.csv
+**/.idea
+_data
 client_secret.json
 _out
+tmp

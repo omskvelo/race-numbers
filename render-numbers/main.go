@@ -141,6 +141,8 @@ var (
 	bgFileName           = ""
 	outDir               = ""
 	tmpDir               = ""
+	limit                = 0
+	onlyPresent          = false
 )
 
 func main() {
@@ -149,6 +151,8 @@ func main() {
 	flag.StringVar(&bgFileName, "bg", "", "Background pdf file")
 	flag.StringVar(&outDir, "out", "out", "Output dir")
 	flag.StringVar(&tmpDir, "tmp", "tmp", "Tmp dir")
+	flag.IntVar(&limit, "limit", 250, "Limit amount of numbers generated")
+	flag.BoolVar(&onlyPresent, "present", false, "Generate numbers only present in Participants file")
 
 	flag.Parse()
 
@@ -162,7 +166,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for i := 0; i < 250; i++ {
+	for i := 0; i < limit; i++ {
 
 		var name string
 		number := i + 1
@@ -175,16 +179,16 @@ func main() {
 			numberString = user["number"]
 			name = user["name"]
 			team = user["team"]
-
-			parsedNumber, _ := strconv.ParseInt(numberString, 10, 64)
-			if parsedNumber != int64(number) {
-				log.Fatalln("Numbers don't match")
-			}
 		} else {
+			if onlyPresent {
+				break
+			}
 			numberString = fmt.Sprintf("%v", number)
 		}
 
-		tmpOutputFileName := fmt.Sprintf("%v/%03d.pdf", tmpDir, number)
+		parsedNumber, _ := strconv.ParseInt(numberString, 10, 64)
+
+		tmpOutputFileName := fmt.Sprintf("%v/%03d.pdf", tmpDir, parsedNumber)
 
 		out, err := runProgram1(true, true, "../start-number-draw/start-number-draw", "--number", numberString, "--name", name, "--team", team, "-o", tmpOutputFileName)
 		if err != nil {
@@ -192,7 +196,7 @@ func main() {
 			dlog("%v", out)
 		}
 
-		outputFileName := fmt.Sprintf("%v/%03d.pdf", outDir, number)
+		outputFileName := fmt.Sprintf("%v/%03d.pdf", outDir, parsedNumber)
 
 		out, err = runProgram1(true, true, "pdftk", tmpOutputFileName, "background", bgFileName, "output", outputFileName)
 		if err != nil {
