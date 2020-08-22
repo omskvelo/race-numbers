@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+const (
+	fakeLowRating = 1_000_000
+)
+
 // ---------------------------------------------------------------------------
 // Utils
 // ---------------------------------------------------------------------------
@@ -23,11 +27,12 @@ func dlog(format string, args ...interface{}) {
 // ---------------------------------------------------------------------------
 
 type User struct {
-	firstName    string
-	lastName     string
-	name         string
-	team         string
-	points       int64
+	firstName string
+	lastName  string
+	name      string
+	team      string
+	// points       int64
+	rating       int64
 	paid         bool
 	start_number int64
 }
@@ -94,10 +99,20 @@ func ratedUsersFromCsvFile(csvFilePath string) (users []User, err error) {
 	for _, record := range mapRecords {
 		var user User
 
-		user.name = strings.TrimSpace(record["name"])
-		user.points, _ = strconv.ParseInt(record["pts"], 10, 64)
+		firstName := strings.TrimSpace(record["firstname"])
+		lastName := strings.TrimSpace(record["lastname"])
 
+		user.name = fmt.Sprintf("%v %v", lastName, firstName)
+		//user.points, _ = strconv.ParseInt(record["pts"], 10, 64)
+		rating, err := strconv.ParseInt(record["number"], 10, 64)
+		if err == nil {
+			user.rating = rating
+		} else {
+			user.rating = fakeLowRating
+		}
 		users = append(users, user)
+
+		dlog("Rated user: %v, %v", user.name, user.rating)
 	}
 
 	return
@@ -117,16 +132,19 @@ func participantsUsersFromCsvFile(csvFilePath string) (users []User, err error) 
 	for _, record := range mapRecords {
 		var user User
 
-		// paid := len(record["Оплата"]) != 0
-		// if !paid {
-		// 	continue
-		// }
+		paid := len(record["Оплата_"]) != 0
+		if !paid {
+			continue
+		}
 		user.firstName = strings.TrimSpace(record["Имя"])
 		user.lastName = strings.TrimSpace(record["Фамилия"])
 		user.team = strings.TrimSpace(record["Клуб/команда"])
 		user.name = fmt.Sprintf("%v %v", user.lastName, user.firstName)
+		user.rating = fakeLowRating
 
 		users = append(users, user)
+
+		dlog("Participant: %v, %v", user.name, user.team)
 	}
 
 	return
@@ -163,6 +181,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	participants, err := participantsUsersFromCsvFile(participantsFileName)
 	if err != nil {
 		log.Fatal(err)
@@ -173,9 +192,14 @@ func main() {
 	for i, user := range participants {
 		ratedUser, ok := ratedUsersMap[user.name]
 		if ok {
-			user.points = ratedUser.points
+			//user.points = ratedUser.points
+			user.rating = ratedUser.rating
 		}
 		participants[i] = user
+	}
+
+	for _, user := range participants {
+		dlog("Participant: %v, rating:%v", user.name, user.rating)
 	}
 
 	sortedParticipants := make([]User, len(participants))
@@ -184,13 +208,21 @@ func main() {
 	sort.Slice(sortedParticipants, func(index1, index2 int) bool {
 		user1 := sortedParticipants[index1]
 		user2 := sortedParticipants[index2]
-		if user2.points < user1.points {
-			return true
-		} else if user2.points > user1.points {
-			return false
-		}
-		return strings.Compare(user1.name, user2.name) < 0
+		return user2.rating >= user1.rating
 	})
+
+	dlog("sortedParticipants: %v", sortedParticipants)
+
+	// sort.Slice(sortedParticipants, func(index1, index2 int) bool {
+	// 	user1 := sortedParticipants[index1]
+	// 	user2 := sortedParticipants[index2]
+	// 	if user2.points < user1.points {
+	// 		return true
+	// 	} else if user2.points > user1.points {
+	// 		return false
+	// 	}
+	// 	return strings.Compare(user1.name, user2.name) < 0
+	// })
 
 	for i := 0; i < len(sortedParticipants); i++ {
 		number := i + 1

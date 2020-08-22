@@ -20,9 +20,13 @@ import (
 )
 
 var (
-	appName string
-	sheetId string
+	appName        string
+	sheetId        string
 	secretFileName string
+)
+
+const (
+	googleApiCredentialsDir = ".google-api-credentials"
 )
 
 // ---------------------------------------------------------------------------
@@ -42,7 +46,6 @@ func interfaceToString(value interface{}) string {
 		return ""
 	}
 }
-
 
 func checkError(message string, err error) {
 	if err != nil {
@@ -72,7 +75,6 @@ func interfaceArrayArrayToStringsArrayArray(args [][]interface{}) [][]string {
 
 	return result
 }
-
 
 // ---------------------------------------------------------------------------
 // Sheets api
@@ -113,11 +115,10 @@ func sheetsTokenCacheFile() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	tokenCacheDir := filepath.Join(homeDir, ".google-api-credentials")
+	tokenCacheDir := filepath.Join(homeDir, googleApiCredentialsDir)
 	os.MkdirAll(tokenCacheDir, 0700)
 	filename := fmt.Sprintf("%v-%v.json", appName, sheetId)
-	return filepath.Join(tokenCacheDir,
-		url.QueryEscape(filename)), err
+	return filepath.Join(tokenCacheDir, url.QueryEscape(filename)), err
 }
 
 func sheetsTokenFromFile(file string) (*oauth2.Token, error) {
@@ -132,6 +133,9 @@ func sheetsTokenFromFile(file string) (*oauth2.Token, error) {
 }
 
 func sheetsSaveToken(file string, token *oauth2.Token) {
+	dir := filepath.Dir(file)
+	fmt.Printf("Creating dir '%v'\n", dir)
+	os.Mkdir(dir, os.ModePerm)
 	dlog("Saving credential file to: %s", file)
 	f, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
@@ -207,9 +211,9 @@ func preprocessValuesForCsv(values [][]string) (resultValues [][]string) {
 
 func main() {
 
-	flag.StringVar(&sheetId,"id", "", "Sheet id")
-	flag.StringVar(&appName,"app", "", "App name")
-	flag.StringVar(&secretFileName,"sec", "", "Client secret file name")
+	flag.StringVar(&sheetId, "id", "", "Sheet id")
+	flag.StringVar(&appName, "app", "", "App name")
+	flag.StringVar(&secretFileName, "sec", "", "Client secret file name")
 
 	flag.Parse()
 
