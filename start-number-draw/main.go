@@ -82,10 +82,17 @@ func main() {
 			pdf.SetX(0)
 			pdf.MultiCell(pageWidth, 0, translator(number), "", "C", false)
 		} else {
-			setFont(pdf, fontHelveticaBold, "", 380)
-			pdf.SetY(vmargin + (pageHeight-vmargin)/2 + 6.5)
-			pdf.SetX(0)
-			pdf.MultiCell(pageWidth, 0, translator(number), "", "C", false)
+			if len(number) <= 2 {
+				setFont(pdf, fontHelveticaBold, "", 380)
+				pdf.SetY(vmargin + (pageHeight-vmargin)/2 + 6.5)
+				pdf.SetX(0)
+				pdf.MultiCell(pageWidth, 0, translator(number), "", "C", false)
+			} else {
+				setFont(pdf, fontHelveticaBold, "", 320)
+				pdf.SetY(vmargin + (pageHeight-vmargin)/2 + 6.5)
+				pdf.SetX(0)
+				pdf.MultiCell(pageWidth, 0, translator(number), "", "C", false)
+			}
 		}
 	}
 

@@ -1,5 +1,8 @@
-**/.idea
-_data
 client_secret.json
+_data/participants.csv
+_merged
 _out
 _tmp
+start-number-draw/out
+
+**/.idea
