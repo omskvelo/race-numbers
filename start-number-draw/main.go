@@ -57,39 +57,47 @@ func main() {
 
 	translator := pdf.UnicodeTranslatorFromDescriptor("cp1251")
 
-	vmargin := 22.0
+	vmarginTop := 22.0
+	vmarginBottom := 50.0
 	hmargin := 7.0
 
 	if len(name) != 0 {
-		pdf.SetTextColor(0xC0, 0x00, 0x00)
+		// pdf.SetTextColor(0xC0, 0x00, 0x00)
+		pdf.SetTextColor(0, 0, 0)
 		lineHeight := setFont(pdf, fontHelvetica, "", 40)
-		pdf.SetY(vmargin + 7)
+		pdf.SetY(vmarginTop + 7)
 		pdf.SetX(hmargin)
 		// pdf.MultiCell(pageWidth, lineHeight, translator(name), "", "C", false)
-		pdf.MultiCell(pageWidth-hmargin, lineHeight, translator(name), "", "C", false)
+		pdf.MultiCell(pageWidth-hmargin, lineHeight, translator(name), "", "L", false)
 	}
+
+	mul := 0.6
+	withTeamHei := 276.0
+	withNameHei := 324.0
+	noTeamNameShortHei := 380.0
+	noTeamNameLongHei := 320.0
 
 	if len(number) != 0 {
 		pdf.SetTextColor(0, 0, 0)
 		if len(team) != 0 {
-			setFont(pdf, fontHelveticaBold, "", 276)
-			pdf.SetY(vmargin + (pageHeight-vmargin)/2 + 6)
+			setFont(pdf, fontHelveticaBold, "", withTeamHei*mul)
+			pdf.SetY(vmarginTop + (pageHeight-vmarginBottom)/2 + 6)
 			pdf.SetX(0)
 			pdf.MultiCell(pageWidth, 0, translator(number), "", "C", false)
 		} else if len(name) != 0 {
-			setFont(pdf, fontHelveticaBold, "", 324)
-			pdf.SetY(vmargin + (pageHeight-vmargin)/2 + 14)
+			setFont(pdf, fontHelveticaBold, "", withNameHei*mul)
+			pdf.SetY(vmarginTop + (pageHeight-vmarginBottom)/2 + 14)
 			pdf.SetX(0)
 			pdf.MultiCell(pageWidth, 0, translator(number), "", "C", false)
 		} else {
 			if len(number) <= 2 {
-				setFont(pdf, fontHelveticaBold, "", 380)
-				pdf.SetY(vmargin + (pageHeight-vmargin)/2 + 6.5)
+				setFont(pdf, fontHelveticaBold, "", noTeamNameShortHei*mul)
+				pdf.SetY(vmarginTop + (pageHeight-vmarginBottom)/2 + 6.5)
 				pdf.SetX(0)
 				pdf.MultiCell(pageWidth, 0, translator(number), "", "C", false)
 			} else {
-				setFont(pdf, fontHelveticaBold, "", 320)
-				pdf.SetY(vmargin + (pageHeight-vmargin)/2 + 6.5)
+				setFont(pdf, fontHelveticaBold, "", noTeamNameLongHei*mul)
+				pdf.SetY(vmarginTop + (pageHeight-vmarginBottom)/2 + 6.5)
 				pdf.SetX(0)
 				pdf.MultiCell(pageWidth, 0, translator(number), "", "C", false)
 			}
@@ -97,12 +105,13 @@ func main() {
 	}
 
 	if len(team) != 0 {
-		pdf.SetTextColor(0xC0, 0x00, 0x00)
+		pdf.SetTextColor(0, 0, 0)
+		// pdf.SetTextColor(0xC0, 0x00, 0x00)
 		setFont(pdf, fontHelvetica, "", 32)
-		pdf.SetY(pageHeight - vmargin + 11)
+		pdf.SetY(pageHeight - vmarginBottom + 11)
 		pdf.SetX(hmargin)
 		// pdf.MultiCell(pageWidth, 0, translator(team), "", "C", false)
-		pdf.MultiCell(pageWidth-hmargin*2, 0, translator(team), "", "C", false)
+		pdf.MultiCell(pageWidth-hmargin*2, 0, translator(team), "", "R", false)
 	}
 
 	err = pdf.OutputFileAndClose(fileName)

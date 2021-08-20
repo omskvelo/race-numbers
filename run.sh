@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash
 
 program_exists () {
 	type "$1" &> /dev/null ;
@@ -6,15 +6,17 @@ program_exists () {
 
 main()
 {
-    REGISTERED_USERS_GOOGLE_SHEET_ID='18565fZBloJgaOP9YJrCwLUIYArc2HUBqVEljTlhH2TA'
+    # REGISTERED_USERS_GOOGLE_SHEET_ID='18565fZBloJgaOP9YJrCwLUIYArc2HUBqVEljTlhH2TA'
 
-    cd google-sheet-to-csv
-    go run main.go -app event-table -id "$REGISTERED_USERS_GOOGLE_SHEET_ID" -sec ../client_secret.json > ../_data/participants.csv
-    cd ..
+    # cd google-sheet-to-csv
+    # go run main.go -app event-table -id "$REGISTERED_USERS_GOOGLE_SHEET_ID" -sec ../client_secret.json > ../_data/participants.csv
+    # cd ..
 
-    cd rate-participants
-    go run main.go -p ../_data/participants.csv -r ../_data/rating.csv > ../_data/participants_rated.csv
-    cd ..
+    # exit
+
+    # cd rate-participants
+    # go run main.go -p ../_data/participants.csv -r ../_data/rating.csv > ../_data/participants_rated.csv
+    # cd ..
 
     if ! program_exists pdftk; then
         echo "Please install pdftk"

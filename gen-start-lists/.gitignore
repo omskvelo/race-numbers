@@ -1,0 +1,7 @@
+out/*.pdf
+out/with_bg_out/*.pdf
+out1/*.pdf
+out1/with_bg_out/*.pdf
+out2/*.pdf
+out2/with_bg_out/*.pdf
+.idea

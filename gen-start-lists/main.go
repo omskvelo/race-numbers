@@ -135,10 +135,10 @@ func participantsUsersFromCsvFile(csvFilePath string) (users []User, err error) 
 	for _, record := range mapRecords {
 		var user User
 
-		user.paid = true //len(record["Оплата_"]) != 0
-		// if !user.paid {
-		// 	continue
-		// }
+		user.paid = len(record["Оплата_"]) != 0
+		if !user.paid {
+			continue
+		}
 		user.firstName = strings.TrimSpace(record["Имя"])
 		user.lastName = strings.TrimSpace(record["Фамилия"])
 		user.name = fmt.Sprintf("%v %v", user.lastName, user.firstName)
@@ -146,11 +146,10 @@ func participantsUsersFromCsvFile(csvFilePath string) (users []User, err error) 
 		user.rating = fakeLowRating
 
 		category := strings.TrimSpace(record["Категория"])
-		user.category = category
-		// categoryFields := strings.Fields(category)
-		// if len(categoryFields) > 0 {
-		// user.category = categoryFields[0]
-		// }
+		categoryFields := strings.Fields(category)
+		if len(categoryFields) > 0 {
+			user.category = categoryFields[0]
+		}
 
 		user.surName = strings.TrimSpace(record["Отчество"])
 		user.phone = strings.TrimSpace(record["Телефон"])
@@ -175,15 +174,12 @@ var (
 	participantsFileName = ""
 	ratingFileName       = ""
 	dumpNumbers          = false
-	startList            = false
 )
 
 func main() {
 
 	flag.StringVar(&participantsFileName, "p", "", "Participants csv file")
 	flag.StringVar(&ratingFileName, "r", "", "Rating csv file")
-	flag.BoolVar(&dumpNumbers, "dump", false, "Dump numbers")
-	flag.BoolVar(&startList, "startList", false, "Generate start list")
 
 	flag.Parse()
 
@@ -255,53 +251,25 @@ func main() {
 		sortedUsers[i] = user
 	}
 
-	if dumpNumbers {
-		for _, user := range participants {
-			dlog("%v", allUsersMap[user.name].startNumber)
-		}
-	} else {
-		writer := csv.NewWriter(os.Stdout)
-		defer writer.Flush()
+	writer := csv.NewWriter(os.Stdout)
+	defer writer.Flush()
 
-		if startList {
-			writer.Write([]string{"Фамилия Имя", "Категория", "Номер", "Оплата"})
+	writer.Write([]string{"lastName", "firstName", "team", "category", "number"})
 
-			for _, participantUser := range participants {
+	for _, participantUser := range participants {
 
-				user, ok := allUsersMap[participantUser.name]
-				if !ok {
-					continue
-				}
-
-				lineArray := make([]string, 0)
-				lineArray = append(lineArray, user.name)
-				lineArray = append(lineArray, user.category)
-				startNumberString := ""
-				if user.startNumber != 0 {
-					startNumberString = fmt.Sprintf("%v", user.startNumber)
-				}
-				lineArray = append(lineArray, startNumberString)
-				userPaidString := ""
-				if user.paid {
-					userPaidString = "+"
-				}
-				lineArray = append(lineArray, userPaidString)
-
-				writer.Write(lineArray)
-			}
-		} else {
-			writer.Write([]string{"number", "name", "team", "pts"})
-
-			for _, user := range sortedUsers {
-				lineArray := make([]string, 0)
-				lineArray = append(lineArray, fmt.Sprintf("%v", user.startNumber))
-				lineArray = append(lineArray, user.name)
-				lineArray = append(lineArray, user.team)
-				lineArray = append(lineArray, "")
-
-				writer.Write(lineArray)
-			}
+		user, ok := allUsersMap[participantUser.name]
+		if !ok {
+			continue
 		}
 
+		lineArray := make([]string, 0)
+		lineArray = append(lineArray, user.lastName)
+		lineArray = append(lineArray, user.firstName)
+		lineArray = append(lineArray, user.team)
+		lineArray = append(lineArray, user.category)
+		lineArray = append(lineArray, fmt.Sprintf("%v", user.startNumber))
+
+		writer.Write(lineArray)
 	}
 }
